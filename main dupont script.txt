@@ -1,0 +1,44 @@
+#!/bin/sh
+error_handle()
+{
+        #coping from get_MQ_BILLING_list to MQ_QMGR_list.dat
+cp -p get_MQ_BILLING_list MQ_QMGR_list.dat
+
+        #searching for not found string pattern for errors and appending error message to error.csv
+        if cat MQ_QMGR_list.dat | grep "not found"  > error.csv
+        then
+                echo "Billing not found, check error.csv file for more info in this directory"
+                sh errorhandle.sh
+
+        fi
+}
+
+PrevMonthDate1=$(date -d "`date +%Y%m%d` -1 month" +%Y%m)
+revMonthDate2=$(date -d "`date +%Y%m%d` -1 month" +%Y-%m)
+PrevMonthDate3=$(date -d "`date +%Y%m%d` -1 month" +%Y\/%m)
+
+
+#replacing last month date with this month dates in billing.ini file
+sed -i "s/$(date -d "`date +%Y%m%d` -2  month" +%Y%m)/${PrevMonthDate1}/g" billing.ini
+sed -i "s/$(date -d "`date +%Y%m%d` -2 month" +%Y-%m)/${PrevMonthDate2}/g" billing.ini
+sed -i "s|$(date -d "`date +%Y%m%d` -2 month" +%Y\/%m)|${PrevMonthDate3}|g" billing.ini
+
+# replacing previous this month date with next month date in get_MQ_BILLING_list file
+sed -i "s/$(date -d "`date +%Y%m%d` -1 month" +%Y-%m01)/$(date +'%Y-%m01')/g" get_MQ_BILLING_list
+
+
+
+#replacing last month date with this month dates in billing.ini file
+sed -i "s/$(date -d "`date +%Y%m%d` -2  month" +%Y%m)/${PrevMonthDate1}/g" billing.ini
+sed -i "s/$(date -d "`date +%Y%m%d` -2 month" +%Y-%m)/${PrevMonthDate2}/g" billing.ini
+
+#calling the function
+error_handle
+
+sudo cp /usr/local/aissupfta/dufts/SUPPORT/STATS/ftqueues_$(date +'%b01').csv /home/mqm/billing/DUFTS/stats
+
+
+# rename the file with last month date
+sudo mv /home/mqm/billing/DUFTS/stats/ftqueues_$(date +'%b01').csv /home/mqm/billing/DUFTS/stats/ftqueues$(date -d "`date +%Y%m%d` -1 month" +%Y%m).csv
+
+                                                          
